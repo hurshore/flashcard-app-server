@@ -1,5 +1,6 @@
 const { signupValidation, loginValidation } = require('../utility/validation');
 const User = require('../models/User');
+const FlashcardSet = require('../models/FlashcardSet');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
@@ -54,7 +55,22 @@ const login = async (req, res) => {
   res.header('auth-token', token).json(token);
 };
 
+const getUser = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.user._id });
+    const flashcardSets = await FlashcardSet.find({ user: req.user._id });
+
+    return res
+      .status(200)
+      .json({ name: user.name, email: user.email, flashcardSets });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Error fetching user' });
+  }
+};
+
 module.exports = {
   signup,
   login,
+  getUser,
 };
