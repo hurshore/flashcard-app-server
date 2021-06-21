@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 const authRoutes = require('./routes/authRoutes');
+const flashcardRoutes = require('./routes/flashcardRoutes');
 const app = express();
 
 app.use(cors());
@@ -24,3 +25,4 @@ mongoose.connect(
 
 // Routes
 app.use('/api/user', authRoutes);
+app.use('/api/flashcards', flashcardRoutes);
