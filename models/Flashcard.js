@@ -14,6 +14,10 @@ const schema = new Schema({
     type: String,
     required: true,
   },
+  user: {
+    type: String,
+    required: true,
+  },
 });
 
 const flashcardSet = mongoose.model('Flashcard', schema);

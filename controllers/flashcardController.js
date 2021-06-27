@@ -1,7 +1,7 @@
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 
-const handleFlashcardSet = async (req, flashcardSet) => {
+const handleFlashcardSetAdd = async (req, flashcardSet) => {
   if (!flashcardSet) {
     flashcardSet = new FlashcardSet({
       flashcardCount: 1,
@@ -20,12 +20,29 @@ const handleFlashcardSet = async (req, flashcardSet) => {
   }
 };
 
+const handleFlashcardSetRemove = async (flashcardSet) => {
+  try {
+    if (flashcardSet.flashcardCount === 1) {
+      await FlashcardSet.deleteOne({ _id: flashcardSet._id });
+    } else {
+      await FlashcardSet.updateOne(
+        { _id: flashcardSet._id },
+        { flashcardCount: flashcardSet.flashcardCount - 1 }
+      );
+    }
+    console.log('Deleted flashcard set');
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 const createANewFlashcard = async (req, flashcardSetId) => {
   try {
     const flashcard = new Flashcard({
       answer: req.body.answer,
       question: req.body.question,
       flashcardSetId,
+      user: req.user._id,
     });
     await flashcard.save();
   } catch (err) {
@@ -40,12 +57,37 @@ const createFlashcard = async (req, res) => {
       subject: req.body.subject,
     });
 
-    const flashcardSetId = await handleFlashcardSet(req, flashcardSet);
+    const flashcardSetId = await handleFlashcardSetAdd(req, flashcardSet);
     await createANewFlashcard(req, flashcardSetId);
     res.status(200).json({ message: 'Successfully created a new flashcard' });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'Error creating flashcard' });
+  }
+};
+
+const deleteFlashcard = async (req, res) => {
+  const { flashcardId } = req.body;
+  try {
+    const flashcard = await Flashcard.findOne({ _id: flashcardId });
+    if (!flashcard) {
+      return res.status(404).json({ error: 'Flashcard does not exist' });
+    }
+
+    const { flashcardSetId, user } = flashcard;
+    if (user !== req.user._id) {
+      return res
+        .status(403)
+        .json({ error: 'You do not have access to this resource' });
+    }
+
+    const flashcardSet = await FlashcardSet.findOne({ _id: flashcardSetId });
+    await Flashcard.deleteOne({ _id: flashcardId });
+    await handleFlashcardSetRemove(flashcardSet);
+
+    return res.status(200).json('Flashcard deleted successfully');
+  } catch (err) {
+    console.log(err);
   }
 };
 
@@ -73,4 +115,9 @@ const getSingleFlashcardSet = async (req, res) => {
   }
 };
 
-module.exports = { createFlashcard, getFlashcardSets, getSingleFlashcardSet };
+module.exports = {
+  createFlashcard,
+  getFlashcardSets,
+  getSingleFlashcardSet,
+  deleteFlashcard,
+};
