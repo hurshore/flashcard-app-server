@@ -25,4 +25,4 @@ mongoose.connect(
 
 // Routes
 app.use('/api/user', authRoutes);
-app.use('/api/flashcards', flashcardRoutes);
+app.use('/api/flashcard', flashcardRoutes);
