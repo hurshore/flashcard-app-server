@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 
@@ -150,10 +151,46 @@ const deleteFlashcardSet = async (req, res) => {
   }
 };
 
+const getRandomFlashcardSets = async (req, res) => {
+  try {
+    const result = await fetch('https://opentdb.com/api_category.php');
+    const data = await result.json();
+    res.status(200).json(data);
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .json({ error: 'Error trying to get random flashcard sets' });
+  }
+};
+
+const getSingleRandomFlashcardSet = async (req, res) => {
+  const { categoryId: id, amount } = req.body;
+  if (!id || !amount) {
+    return res
+      .status(400)
+      .json({ error: 'category id or amount cannot be empty' });
+  }
+  try {
+    const result = await fetch(
+      `https://opentdb.com/api.php?amount=${amount}&category=${id}`
+    );
+    const data = await result.json();
+    res.status(200).json(data);
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .json({ error: 'Error trying to get random flashcard set' });
+  }
+};
+
 module.exports = {
   createFlashcard,
   getFlashcardSets,
   getSingleFlashcardSet,
   deleteFlashcard,
   deleteFlashcardSet,
+  getRandomFlashcardSets,
+  getSingleRandomFlashcardSet,
 };
