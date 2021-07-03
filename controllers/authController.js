@@ -30,7 +30,10 @@ const signup = async (req, res) => {
     // Save new user to database
     await newUser.save();
     // Create a JWT
-    const token = jwt.sign({ _id: newUser._id }, process.env.TOKEN_SECRET);
+    const token = jwt.sign(
+      { _id: newUser._id, name: req.body.name, email: req.body.email },
+      process.env.TOKEN_SECRET
+    );
     res.header('auth-token', token).json(token);
   } catch (err) {
     res.status(500).json(err.message);
@@ -51,7 +54,10 @@ const login = async (req, res) => {
   if (!validPass) return res.status(401).json({ error: 'Incorrect password' });
 
   // Create a JWT
-  const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+  const token = jwt.sign(
+    { _id: user._id, name: user.name, email: req.body.email },
+    process.env.TOKEN_SECRET
+  );
   res.header('auth-token', token).json(token);
 };
 
